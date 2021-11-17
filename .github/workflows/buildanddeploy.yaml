@@ -37,7 +37,7 @@ jobs:
         shell: pwsh
         run: |
           pushd './${{ env.AZURE_UNITTEST_PATH }}'
-          dotnet test --no-restore --verbosity normal
+          dotnet test --verbosity normal
           popd
 
       - name: 'Run Azure Functions Action'
