@@ -7,6 +7,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Microsoft.Azure.Cosmos.Table;
+using RasputinTMFaSessionSession.models;
 
 namespace RasputinTMFaSessionService
 {
@@ -14,20 +16,20 @@ namespace RasputinTMFaSessionService
     {
         [FunctionName("GetSession")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+            [Table("tblSessions")] CloudTable tblSession,
             ILogger log)
         {
-            log.LogInformation("GetSession processed a request.");
+            log.LogInformation("GetSession called.");
 
-            string name = req.Query["name"];
+            string responseMessage = null;
+            string userIDString = req.Query["UserID"];
+            if (userIDString != null && !userIDString.Equals(""))
+            {
+                Session[] sessions = await SessionService.FindUserSessions(log, tblSession, Guid.Parse(userIDString), true);
+                responseMessage = JsonConvert.SerializeObject(sessions);
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
-
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+            }
 
             return new OkObjectResult(responseMessage);
         }

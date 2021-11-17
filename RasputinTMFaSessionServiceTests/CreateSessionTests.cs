@@ -25,7 +25,7 @@ namespace RasputinTMFaSessionServiceTests
         }
 
         [Fact]
-        public async Task CreateSesionAsync()
+        public async Task CreateSessionNew()
         {
             //Arrange
             CreateSessionRequest createSessionRequest = new CreateSessionRequest() { UserID = Guid.NewGuid(), ConsultantID = Guid.NewGuid() };
