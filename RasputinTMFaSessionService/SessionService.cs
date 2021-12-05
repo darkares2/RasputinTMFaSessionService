@@ -18,6 +18,33 @@ namespace RasputinTMFaSessionService
             return session;
         }
 
+        public static async Task<Session> CloseSession(ILogger log, CloudTable tblSession, Guid sessionID)
+        {
+            Session session = await FindSession(log, tblSession, sessionID);
+            session.Open = false;
+            TableOperation operation = TableOperation.Replace(session);
+            await tblSession.ExecuteAsync(operation);
+            return session;
+        }
+
+        public static async Task<Session> FindSession(ILogger log, CloudTable tblSession, Guid SessionID)
+        {
+            string pk = "p1";
+            string rk = SessionID.ToString();
+            log.LogInformation($"FindSession: {pk},{rk}");
+            TableOperation operation = TableOperation.Retrieve(pk, rk);
+            try
+            {
+                var tableResult = await tblSession.ExecuteAsync(operation);
+                return tableResult.Result as Session != null ? tableResult.Result as Session : (Session)tableResult;
+            }
+            catch (Exception ex)
+            {
+                log.LogWarning(ex, "FindSession", SessionID);
+                return null;
+            }
+        }
+
         public static async Task<Session[]> FindUserSessions(ILogger log, CloudTable tblSession, Guid userID, bool open)
         {
             log.LogInformation($"FindUserSessions by user {userID}");
